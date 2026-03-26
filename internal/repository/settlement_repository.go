@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/sport-hub/sport-hub-payouts/internal/model"
+	"gorm.io/gorm"
 )
 
 type SettlementRepository interface {
@@ -12,26 +12,25 @@ type SettlementRepository interface {
 }
 
 type settlementRepository struct {
-	db *sqlx.DB
+	db *gorm.DB
 }
 
-func NewSettlementRepository(db *sqlx.DB) SettlementRepository {
+func NewSettlementRepository(db *gorm.DB) SettlementRepository {
 	return &settlementRepository{db: db}
 }
 
 func (r *settlementRepository) GetWalletSummary(ctx context.Context, ownerID string) (*model.WalletSummary, error) {
 	var summary model.WalletSummary
 
-	query := `
-		SELECT 
+	err := r.db.WithContext(ctx).Table("owner_settlements").
+		Select(`
 			COALESCE(SUM(CASE WHEN status = 'available' THEN net_amount ELSE 0 END), 0) as available_balance,
 			COALESCE(SUM(CASE WHEN status = 'processing' THEN net_amount ELSE 0 END), 0) as processing_balance,
 			COALESCE(SUM(CASE WHEN status = 'paid' THEN net_amount ELSE 0 END), 0) as paid_out_total
-		FROM owner_settlements
-		WHERE owner_id = $1
-	`
+		`).
+		Where("owner_id = ?", ownerID).
+		Scan(&summary).Error
 
-	err := r.db.GetContext(ctx, &summary, query, ownerID)
 	if err != nil {
 		return nil, err
 	}

@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/lib/pq"
+	"github.com/sport-hub/sport-hub-payouts/database"
 	"github.com/sport-hub/sport-hub-payouts/internal/handler"
 	"github.com/sport-hub/sport-hub-payouts/internal/repository"
 	"github.com/sport-hub/sport-hub-payouts/internal/service"
@@ -16,17 +15,10 @@ import (
 )
 
 func main() {
-	// Database connection (Using environment variables or defaults)
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = "postgres://postgres:postgres@localhost:5432/sport_hub?sslmode=disable"
-	}
-
-	db, err := sqlx.Connect("postgres", dbURL)
+	// Database connection
+	db, err := database.InitDB()
 	if err != nil {
 		log.Printf("Warning: Could not connect to database: %v. Running in mock mode if needed.", err)
-	} else {
-		defer db.Close()
 	}
 
 	// Initialize Echo
