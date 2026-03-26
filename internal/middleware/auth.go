@@ -24,12 +24,12 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		tokenString := parts[Part1]
-		
+
 		// Get JWT secret from env
 		secret := os.Getenv("JWT_SECRET")
 		if secret == "" {
 			// Fallback placeholder secret if not set (for development/staging)
-			secret = "your-secret-key"
+			secret = "your_jwt_secret_key_here"
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
