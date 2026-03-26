@@ -1,13 +1,16 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
-// AuthMiddleware is a placeholder for JWT authentication
+// AuthMiddleware verifies the JWT and extracts the userid
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authHeader := c.Request().Header.Get("Authorization")
@@ -16,22 +19,47 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		if len(parts) != 2 || parts[Part0] != "Bearer" {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid Authorization format"})
 		}
 
-		// In a real implementation, you would verify the JWT here
-		token := parts[1]
+		tokenString := parts[Part1]
 		
-		// Placeholder: Extract owner_id from token
-		// For now, if token is "mock-owner-123", set owner_id to "123"
-		// In production, this should be the sub claim from the verified JWT
-		ownerID := token 
-		if ownerID == "" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token"})
+		// Get JWT secret from env
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" {
+			// Fallback placeholder secret if not set (for development/staging)
+			secret = "your-secret-key"
 		}
 
-		c.Set("owner_id", ownerID)
-		return next(c)
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(secret), nil
+		})
+
+		if err != nil {
+			// If verification fails, we still try to parse it if in staging/debug
+			// but for now, let's be strict or provide an "ignore verification" if requested.
+			// However, the user specifically mentioned "prevent unauthorized access".
+			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid or expired token", "error": err.Error()})
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			userID, ok := claims["userid"].(string)
+			if !ok {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Token missing userid claim"})
+			}
+			c.Set("owner_id", userID)
+			return next(c)
+		}
+
+		return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token claims"})
 	}
 }
+
+const (
+	Part0 = 0
+	Part1 = 1
+)

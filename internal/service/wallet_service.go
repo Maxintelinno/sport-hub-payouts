@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sport-hub/sport-hub-payouts/internal/model"
 	"github.com/sport-hub/sport-hub-payouts/internal/repository"
@@ -20,5 +21,8 @@ func NewWalletService(repo repository.SettlementRepository) WalletService {
 }
 
 func (s *walletService) GetSummary(ctx context.Context, ownerID string) (*model.WalletSummary, error) {
+	if s.repo == nil {
+		return nil, fmt.Errorf("repository is not initialized (possibly due to database connection failure)")
+	}
 	return s.repo.GetWalletSummary(ctx, ownerID)
 }
