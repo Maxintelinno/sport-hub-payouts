@@ -10,9 +10,9 @@ import (
 	"github.com/sport-hub/sport-hub-payouts/config"
 	"github.com/sport-hub/sport-hub-payouts/database"
 	"github.com/sport-hub/sport-hub-payouts/internal/handler"
+	customMiddleware "github.com/sport-hub/sport-hub-payouts/internal/middleware"
 	"github.com/sport-hub/sport-hub-payouts/internal/repository"
 	"github.com/sport-hub/sport-hub-payouts/internal/service"
-	customMiddleware "github.com/sport-hub/sport-hub-payouts/internal/middleware"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 		// Fallback or Mock (not implemented here for brevity)
 		log.Println("Note: Repository initialized without database connection.")
 	}
-	
+
 	walletService := service.NewWalletService(walletRepo)
 	walletHandler := handler.NewWalletHandler(walletService)
 
@@ -58,9 +58,9 @@ func main() {
 
 	// V1 Routes
 	v1 := e.Group("/v1")
-	
+
 	// Owner Routes
-	owner := v1.Group("/owner", customMiddleware.AuthMiddleware(cfg.JwtSecret, cfg.SkipJwtVerify))
+	owner := v1.Group("/owner", customMiddleware.JWTMiddleware(cfg.JwtSecret, cfg.SkipJwtVerify))
 	owner.GET("/wallet/summary", walletHandler.GetSummary)
 
 	// Start server

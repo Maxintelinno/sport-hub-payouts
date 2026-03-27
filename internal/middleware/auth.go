@@ -9,8 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// AuthMiddleware verifies the JWT and extracts the userid
-func AuthMiddleware(secret string, skipVerify bool) echo.MiddlewareFunc {
+// JWTMiddleware verifies the JWT and extracts the userid
+func JWTMiddleware(secret string, skipVerify bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")

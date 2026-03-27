@@ -8,14 +8,14 @@ import (
 )
 
 type Config struct {
-	AppPort   string
-	AppEnv    string
-	DBHost    string
-	DBPort    string
-	DBUser    string
-	DBPass    string
-	DBName      string
-	JwtSecret   string
+	AppPort       string
+	AppEnv        string
+	DBHost        string
+	DBPort        string
+	DBUser        string
+	DBPass        string
+	DBName        string
+	JwtSecret     string
 	DatabaseURL   string
 	SkipJwtVerify bool
 }
@@ -27,15 +27,15 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		AppPort:   getEnv("APP_PORT", "8080"),
-		AppEnv:    getEnv("APP_ENV", "development"),
-		DBHost:    getEnv("DB_HOST", "localhost"),
-		DBPort:    getEnv("DB_PORT", "5432"),
-		DBUser:    getEnv("DB_USER", "postgres"),
-		DBPass:    getEnv("DB_PASSWORD", "postgres"),
+		AppPort:     getEnv("APP_PORT", "8080"),
+		AppEnv:      getEnv("APP_ENV", "development"),
+		DBHost:      getEnv("DB_HOST", "localhost"),
+		DBPort:      getEnv("DB_PORT", "5432"),
+		DBUser:      getEnv("DB_USER", "postgres"),
+		DBPass:      getEnv("DB_PASSWORD", "postgres"),
 		DBName:      getEnv("DB_NAME", "sport_hub_profile"),
 		JwtSecret:   getEnv("JWT_SECRET", "secret"),
-		DatabaseURL:   getEnv("DATABASE_URL", ""),
+		DatabaseURL: getEnv("DATABASE_URL", ""),
 		SkipJwtVerify: getEnv("SKIP_JWT_VERIFY", "false") == "true",
 	}
 }
