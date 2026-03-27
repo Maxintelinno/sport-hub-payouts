@@ -3,7 +3,6 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,51 +10,43 @@ import (
 )
 
 // AuthMiddleware verifies the JWT and extracts the userid
-func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		if authHeader == "" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Missing Authorization header"})
-		}
-
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[Part0] != "Bearer" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid Authorization format"})
-		}
-
-		tokenString := parts[Part1]
-
-		// Get JWT secret from env
-		secret := os.Getenv("JWT_SECRET")
-		if secret == "" {
-			// Fallback placeholder secret if not set (for development/staging)
-			secret = "your_jwt_secret_key_here"
-		}
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+func AuthMiddleware(secret string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			authHeader := c.Request().Header.Get("Authorization")
+			if authHeader == "" {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Missing Authorization header"})
 			}
-			return []byte(secret), nil
-		})
 
-		if err != nil {
-			// If verification fails, we still try to parse it if in staging/debug
-			// but for now, let's be strict or provide an "ignore verification" if requested.
-			// However, the user specifically mentioned "prevent unauthorized access".
-			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid or expired token", "error": err.Error()})
-		}
-
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			userID, ok := claims["userid"].(string)
-			if !ok {
-				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Token missing userid claim"})
+			parts := strings.Split(authHeader, " ")
+			if len(parts) != 2 || parts[Part0] != "Bearer" {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid Authorization format"})
 			}
-			c.Set("owner_id", userID)
-			return next(c)
-		}
 
-		return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token claims"})
+			tokenString := parts[Part1]
+
+			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+				}
+				return []byte(secret), nil
+			})
+
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid or expired token", "error": err.Error()})
+			}
+
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				userID, ok := claims["userid"].(string)
+				if !ok {
+					return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Token missing userid claim"})
+				}
+				c.Set("owner_id", userID)
+				return next(c)
+			}
+
+			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid token claims"})
+		}
 	}
 }
 

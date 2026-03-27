@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sport-hub/sport-hub-payouts/config"
 	"github.com/sport-hub/sport-hub-payouts/database"
 	"github.com/sport-hub/sport-hub-payouts/internal/handler"
 	"github.com/sport-hub/sport-hub-payouts/internal/repository"
@@ -15,8 +16,11 @@ import (
 )
 
 func main() {
+	// Load Configuration
+	cfg := config.LoadConfig()
+
 	// Database connection
-	db, err := database.InitDB()
+	db, err := database.InitDB(cfg)
 	if err != nil {
 		log.Printf("Warning: Could not connect to database: %v. Running in mock mode if needed.", err)
 	}
@@ -56,7 +60,7 @@ func main() {
 	v1 := e.Group("/v1")
 	
 	// Owner Routes
-	owner := v1.Group("/owner", customMiddleware.AuthMiddleware)
+	owner := v1.Group("/owner", customMiddleware.AuthMiddleware(cfg.JwtSecret))
 	owner.GET("/wallet/summary", walletHandler.GetSummary)
 
 	// Start server

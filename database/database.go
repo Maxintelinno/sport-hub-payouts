@@ -5,21 +5,17 @@ import (
 	"log"
 	"os"
 
+	"github.com/sport-hub/sport-hub-payouts/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func InitDB() (*gorm.DB, error) {
+func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbHost := os.Getenv("DB_HOST")
-		dbPort := os.Getenv("DB_PORT")
-		dbUser := os.Getenv("DB_USER")
-		dbPass := os.Getenv("DB_PASSWORD")
-		dbName := os.Getenv("DB_NAME")
 		dbURL = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Bangkok",
-			dbHost, dbUser, dbPass, dbName, dbPort)
+			cfg.DBHost, cfg.DBUser, cfg.DBPass, cfg.DBName, cfg.DBPort)
 	}
 
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{
