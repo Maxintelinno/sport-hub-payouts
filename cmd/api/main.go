@@ -25,6 +25,8 @@ func main() {
 		log.Printf("Warning: Could not connect to database: %v. Running in mock mode if needed.", err)
 	}
 
+	log.Printf("App Config: Port=%s, Env=%s, SkipVerify=%v", cfg.AppPort, cfg.AppEnv, cfg.SkipJwtVerify)
+
 	// Initialize Echo
 	e := echo.New()
 

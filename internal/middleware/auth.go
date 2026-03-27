@@ -45,7 +45,7 @@ func JWTMiddleware(secret string, skipVerify bool) echo.MiddlewareFunc {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid or expired token", "error": err.Error()})
 			}
 
-			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && (token.Valid || skipVerify) {
 				userID, ok := claims["userid"].(string)
 				if !ok {
 					return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Token missing userid claim"})
