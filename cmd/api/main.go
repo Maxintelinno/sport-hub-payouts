@@ -60,7 +60,7 @@ func main() {
 	v1 := e.Group("/v1")
 	
 	// Owner Routes
-	owner := v1.Group("/owner", customMiddleware.AuthMiddleware(cfg.JwtSecret))
+	owner := v1.Group("/owner", customMiddleware.AuthMiddleware(cfg.JwtSecret, cfg.SkipJwtVerify))
 	owner.GET("/wallet/summary", walletHandler.GetSummary)
 
 	// Start server

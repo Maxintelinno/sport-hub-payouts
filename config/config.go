@@ -16,7 +16,8 @@ type Config struct {
 	DBPass    string
 	DBName      string
 	JwtSecret   string
-	DatabaseURL string
+	DatabaseURL   string
+	SkipJwtVerify bool
 }
 
 func LoadConfig() *Config {
@@ -34,7 +35,8 @@ func LoadConfig() *Config {
 		DBPass:    getEnv("DB_PASSWORD", "postgres"),
 		DBName:      getEnv("DB_NAME", "sport_hub_profile"),
 		JwtSecret:   getEnv("JWT_SECRET", "secret"),
-		DatabaseURL: getEnv("DATABASE_URL", ""),
+		DatabaseURL:   getEnv("DATABASE_URL", ""),
+		SkipJwtVerify: getEnv("SKIP_JWT_VERIFY", "false") == "true",
 	}
 }
 

@@ -10,7 +10,7 @@ import (
 )
 
 // AuthMiddleware verifies the JWT and extracts the userid
-func AuthMiddleware(secret string) echo.MiddlewareFunc {
+func AuthMiddleware(secret string, skipVerify bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -25,12 +25,21 @@ func AuthMiddleware(secret string) echo.MiddlewareFunc {
 
 			tokenString := parts[Part1]
 
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				return []byte(secret), nil
-			})
+			var token *jwt.Token
+			var err error
+
+			if skipVerify {
+				// Parse without verification (for development/staging)
+				token, _, err = new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+			} else {
+				// Parse and verify signature
+				token, err = jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+					}
+					return []byte(secret), nil
+				})
+			}
 
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Invalid or expired token", "error": err.Error()})
