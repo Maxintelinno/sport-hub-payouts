@@ -119,6 +119,41 @@ owner ได้ 900
 
 ดังนั้นต้องมีตารางนี้เพื่อเป็น source of truth
 
+✅ Flow ที่ถูกต้อง (Production จริง)
+🟡 Step 1: Create Booking
+status = pending_payment
+
+ยังไม่เกี่ยวเงิน
+
+🟢 Step 2: Payment Success (สำคัญสุด)
+
+เมื่อ:
+
+QR payment สำเร็จ
+webhook กลับมา
+
+👉 ค่อยทำ:
+
+1. Update booking
+status = confirmed
+2. Create settlement
+owner_settlements
+
+🟡 Delay payout (สำคัญมาก)
+available_at = booking_date + 1 วัน
+
+👉 กัน:
+
+cancel หลังจอง
+dispute
+🟢 เมื่อถึงเวลา
+
+cron job:
+
+pending → available
+🟢 ตอน owner ถอนเงิน
+available → paid
+
 3) ตาราง payout
 
 อันนี้คือ “รอบโอนเงินจริง”
