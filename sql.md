@@ -1,4 +1,7 @@
-ตาราง booking_credits
+#############################
+### ตาราง booking_credits ###
+#############################
+
 ตารางนี้เก็บ “ยอดคงเหลือเครดิตการจอง” ของ user แต่ละคน
 แนะนำให้มี 1 แถวต่อ 1 user
 
@@ -20,7 +23,11 @@ CREATE TABLE public.booking_credits (
 
 CREATE INDEX idx_booking_credits_user_id
 ON public.booking_credits(user_id);
-ตาราง booking_credit_transactions
+
+#########################################
+### ตาราง booking_credit_transactions ###
+#########################################
+
 อันนี้สำคัญมาก เพราะต้องมี ledger ว่า:
 - เครดิตมาจากไหน
 - ใช้ไปกับ booking ไหน
@@ -65,7 +72,9 @@ ON public.booking_credit_transactions(reference_id);
 CREATE INDEX idx_booking_credit_transactions_expires_at
 ON public.booking_credit_transactions(expires_at);
 
-ตาราง owner_settlements
+###############################
+### ตาราง owner_settlements ###
+###############################
 
 ถ้ายังไม่มี ผมแนะนำ schema นี้เลย
 ถ้ามีแล้ว ใช้ส่วน ALTER ด้านล่างแทน
